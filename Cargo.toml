@@ -1,0 +1,16 @@
+[package]
+name = "rust_procon"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+num = "=0.2.1"
+num-bigint = "=0.2.6"
+num-complex = "=0.2.4"
+num-integer = "=0.1.42"
+num-iter = "=0.1.40"
+num-rational = "=0.2.4"
+num-traits = "=0.2.11"
+cargo-snippet = "0.6.5"
