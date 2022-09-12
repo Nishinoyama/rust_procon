@@ -31,6 +31,13 @@ pub trait Group: Monoid {
     fn inv(&self) -> Self;
 }
 
+/// Those op is **commutative**.
+///
+/// ## Commutativity
+/// for all a b, a `op` b = b `op` a
+///
+pub trait Commutativity: Magma {}
+
 /// Those op is **idempotent**.
 ///
 /// ## Idempotence
@@ -40,7 +47,7 @@ pub trait Group: Monoid {
 /// max: `max x x = x`
 ///
 /// gcd: `gcd x x = x`
-pub trait IdempotentOp: Magma {}
+pub trait Idempotence: Magma {}
 
 /// Frequently used algebraic structures.
 pub mod typical {
@@ -63,7 +70,7 @@ pub mod typical {
 
     // FIXME: implements of monoid or such structure should be written in macro...
 
-    /// min: [Monoid] and [IdempotentOp]
+    /// min: [Monoid] and [Idempotence]
     #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
     pub struct MinMonoid<T: Clone + Ord>(pub T);
 
@@ -81,9 +88,10 @@ pub mod typical {
         }
     }
 
-    impl<T: Clone + Ord> IdempotentOp for MinMonoid<T> {}
+    impl<T: Clone + Ord> Idempotence for MinMonoid<T> {}
+    impl<T: Clone + Ord> Commutativity for MinMonoid<T> {}
 
-    /// max: [Monoid] and [IdempotentOp]
+    /// max: [Monoid] and [Idempotence]
     #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
     pub struct MaxMonoid<T>(pub T);
 
@@ -101,7 +109,8 @@ pub mod typical {
         }
     }
 
-    impl<T: Clone + Ord> IdempotentOp for MaxMonoid<T> {}
+    impl<T: Clone + Ord> Idempotence for MaxMonoid<T> {}
+    impl<T: Clone + Ord> Commutativity for MaxMonoid<T> {}
 
     /// additive: [Monoid] for unsigned, [Group] for singed
     #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
@@ -135,6 +144,8 @@ pub mod typical {
             Self(self.0.clone().neg())
         }
     }
+
+    impl<T> Commutativity for AdditiveStruct<T> where T: Clone + Add<Output = T> {}
 
     #[cfg(test)]
     mod test {

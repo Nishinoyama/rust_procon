@@ -1,7 +1,8 @@
-use crate::algebra::{Group, Monoid};
+use crate::algebra::{Commutativity, Group, Monoid};
 use crate::structure::ranged::{LeftFixedOp, RangeOp};
 use std::ops::Range;
 
+#[derive(Debug, Clone)]
 pub struct AccumulativeArray<T> {
     data: Vec<T>,
 }
@@ -24,7 +25,7 @@ impl<T: Monoid> LeftFixedOp<T> for AccumulativeArray<T> {
     }
 }
 
-impl<T: Group> RangeOp<T> for AccumulativeArray<T> {
+impl<T: Group + Commutativity> RangeOp<T> for AccumulativeArray<T> {
     fn range_op(&mut self, range: Range<usize>) -> T {
         self.data[range.end].op(&self.data[range.start].inv())
     }

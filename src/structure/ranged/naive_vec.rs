@@ -2,8 +2,15 @@ use crate::algebra::{Magma, Monoid};
 use crate::structure::ranged::{LeftFixedOp, RangeOp};
 use std::ops::Range;
 
+#[derive(Debug, Clone)]
 pub struct NaiveVec<T> {
     data: Vec<T>,
+}
+
+impl<T: Magma> NaiveVec<T> {
+    pub fn point_op_assign(&mut self, index: usize, rhs: &T) {
+        self.data[index] = self.data[index].op(rhs);
+    }
 }
 
 impl<T: Magma> NaiveVec<T> {

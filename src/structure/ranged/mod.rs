@@ -3,11 +3,18 @@ use crate::algebra::*;
 use std::ops::Range;
 
 /// Build: O(N), [LeftFixedOp]: O(1), needs [Monoid].
+///
 /// For [Group], [RangeOp]: O(1) is valid.
 pub mod accumulative_array;
+/// Build: O(N), [LeftFixedOp]: O(logN), needs [Monoid].
+///
+/// For [Commutativity], [PointOpAssign]: O(logN) is valid.
+///
+/// For [Group], [RangeOp]: O(logN) is valid.
+pub mod fenwick_tree;
 /// Build: O(N), [RangeOp]: O(N), needs [Magma]. Used for the other structures verification.
 pub mod naive_vec;
-/// Build: O(NlogN), [RangeOp]: O(1), needs [IdempotentOp], [Monoid].
+/// Build: O(NlogN), [RangeOp]: O(1), needs [Idempotence], [Monoid].
 pub mod sparse_table;
 
 /// returns `OP i \in [l,r) a_i`. If l < r, then returns identity.

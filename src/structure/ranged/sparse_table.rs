@@ -1,12 +1,13 @@
-use crate::algebra::{IdempotentOp, Monoid};
+use crate::algebra::{Idempotence, Monoid};
 use crate::structure::ranged::RangeOp;
 use std::ops::Range;
 
+#[derive(Debug, Clone)]
 pub struct SparseTree<T> {
     doubling: Vec<Vec<T>>,
 }
 
-impl<T: Monoid + IdempotentOp> SparseTree<T> {
+impl<T: Monoid + Idempotence> SparseTree<T> {
     pub fn build_with(a: &[T]) -> Self {
         let n = a.len();
         let t = (n as f32).log2() as usize;
@@ -21,7 +22,7 @@ impl<T: Monoid + IdempotentOp> SparseTree<T> {
     }
 }
 
-impl<T: Monoid + IdempotentOp> RangeOp<T> for SparseTree<T> {
+impl<T: Monoid + Idempotence> RangeOp<T> for SparseTree<T> {
     fn range_op(&mut self, range: Range<usize>) -> T {
         assert!(range.end <= self.doubling.len());
         let c = range.len();
