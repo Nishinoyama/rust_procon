@@ -1,4 +1,4 @@
-use crate::algebra::{Idempotence, Monoid};
+use crate::algebra::{Commutativity, Idempotence, Monoid};
 use crate::structure::ranged::RangeOp;
 use std::ops::Range;
 
@@ -22,7 +22,7 @@ impl<T: Monoid + Idempotence> SparseTree<T> {
     }
 }
 
-impl<T: Monoid + Idempotence> RangeOp<T> for SparseTree<T> {
+impl<T: Monoid + Idempotence + Commutativity> RangeOp<T> for SparseTree<T> {
     fn range_op(&mut self, range: Range<usize>) -> T {
         assert!(range.end <= self.doubling.len());
         let c = range.len();

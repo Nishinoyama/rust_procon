@@ -31,7 +31,7 @@ impl<T: Monoid> RangeOp<T> for NaiveVec<T> {
     }
 }
 
-impl<T: Magma> From<Vec<T>> for NaiveVec<T> {
+impl<T> From<Vec<T>> for NaiveVec<T> {
     fn from(data: Vec<T>) -> Self {
         Self { data }
     }
