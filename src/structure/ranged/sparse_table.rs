@@ -1,6 +1,8 @@
 use crate::algebra::{IdempotentOp, Monoid};
+use crate::structure::ranged::RangeOp;
+use std::ops::Range;
 
-struct SparseTree<T> {
+pub struct SparseTree<T> {
     doubling: Vec<Vec<T>>,
 }
 
@@ -17,20 +19,19 @@ impl<T: Monoid + IdempotentOp> SparseTree<T> {
         }
         Self { doubling }
     }
-    /// return `a[l] op a[l+1] op ... op a[r]`
-    /// ## assertion
-    /// `l < r, r <= len`
-    pub fn range_op(&self, l: usize, r: usize) -> T {
-        assert!(l <= r);
-        assert!(r <= self.doubling.len());
-        let c = r - l;
+}
+
+impl<T: Monoid + IdempotentOp> RangeOp<T> for SparseTree<T> {
+    fn range_op(&mut self, range: Range<usize>) -> T {
+        assert!(range.end <= self.doubling.len());
+        let c = range.len();
         if c == 0 {
             T::id()
         } else {
-            let t = ((r - l) as f32).log2() as usize;
+            let t = (c as f32).log2() as usize;
             let d = 1 << t;
 
-            self.doubling[l][t].op(&self.doubling[r - d][t])
+            self.doubling[range.start][t].op(&self.doubling[range.end - d][t])
         }
     }
 }
@@ -39,19 +40,18 @@ impl<T: Monoid + IdempotentOp> SparseTree<T> {
 mod test {
     use super::SparseTree;
     use crate::algebra::typical::MinMonoid;
-    use crate::algebra::{Magma, Monoid};
+    use crate::structure::ranged::naive_vec::NaiveVec;
+    use crate::structure::ranged::RangeOp;
 
     #[test]
     fn sparse_min() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let x = x.into_iter().map(|x| MinMonoid(x)).collect::<Vec<_>>();
-        let st = SparseTree::build_with(&x);
+        let x = x.into_iter().map(MinMonoid).collect::<Vec<_>>();
+        let mut st = SparseTree::build_with(&x);
+        let mut nv = NaiveVec::from(x.clone());
         for i in 0..x.len() {
             for j in i..x.len() {
-                let naive = x[i..j]
-                    .into_iter()
-                    .fold(MinMonoid::id(), |acc, x| acc.op(x));
-                assert_eq!(st.range_op(i, j), naive);
+                assert_eq!(st.range_op(i..j), nv.range_op(i..j));
             }
         }
     }
