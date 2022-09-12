@@ -45,6 +45,8 @@ pub trait IdempotentOp: Magma {}
 /// Frequently used algebraic structures.
 pub mod typical {
     use super::*;
+    use num_traits::Zero;
+    use std::ops::{Add, Neg};
 
     #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
     pub struct BoundedVec<T>(Vec<T>);
@@ -69,7 +71,7 @@ pub mod typical {
 
     impl<T: Clone + Ord> Magma for MinMonoid<T> {
         fn op(&self, other: &Self) -> Self {
-            self.min(&other).clone()
+            self.min(other).clone()
         }
     }
 
@@ -83,13 +85,13 @@ pub mod typical {
 
     /// max: [Monoid] and [IdempotentOp]
     #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
-    pub struct MaxMonoid<T>(T);
+    pub struct MaxMonoid<T>(pub T);
 
     impl<T: Clone + Ord> Semigroup for MaxMonoid<T> {}
 
     impl<T: Clone + Ord> Magma for MaxMonoid<T> {
         fn op(&self, other: &Self) -> Self {
-            self.max(&other).clone()
+            self.max(other).clone()
         }
     }
 
@@ -101,6 +103,39 @@ pub mod typical {
 
     impl<T: Clone + Ord> IdempotentOp for MaxMonoid<T> {}
 
+    /// additive: [Monoid] for unsigned, [Group] for singed
+    #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
+    pub struct AdditiveStruct<T>(pub T);
+
+    impl<T> Semigroup for AdditiveStruct<T> where T: Clone + Add<Output = T> {}
+
+    impl<T> Magma for AdditiveStruct<T>
+    where
+        T: Clone + Add<Output = T>,
+    {
+        fn op(&self, other: &Self) -> Self {
+            Self(self.0.clone().add(other.0.clone()))
+        }
+    }
+
+    impl<T> Monoid for AdditiveStruct<T>
+    where
+        T: Clone + Add<Output = T> + Zero,
+    {
+        fn id() -> Self {
+            Self(T::zero())
+        }
+    }
+
+    impl<T> Group for AdditiveStruct<T>
+    where
+        T: Clone + Add<Output = T> + Zero + Neg<Output = T>,
+    {
+        fn inv(&self) -> Self {
+            Self(self.0.clone().neg())
+        }
+    }
+
     #[cfg(test)]
     mod test {
         use super::*;
@@ -111,7 +146,7 @@ pub mod typical {
             assert_eq!(l.op(&r), MaxMonoid(3));
             assert_eq!(l.op(&MaxMonoid::id()), l);
 
-            let t = (0..).map(|i| MaxMonoid(i)).take(20000).collect::<Vec<_>>();
+            let t = (0..).map(MaxMonoid).take(20000).collect::<Vec<_>>();
             assert_eq!(
                 t[20..=40].iter().fold(MaxMonoid::id(), |ac, x| ac.op(x)),
                 MaxMonoid(40),

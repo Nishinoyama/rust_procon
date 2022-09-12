@@ -8,9 +8,7 @@ pub struct NaiveVec<T> {
 
 impl<T: Magma> NaiveVec<T> {
     pub fn build_with(a: &[T]) -> Self {
-        Self {
-            data: a.iter().cloned().collect(),
-        }
+        Self { data: a.to_vec() }
     }
 }
 
@@ -44,11 +42,9 @@ mod test {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
         let x = x.into_iter().map(MinMonoid).collect::<Vec<_>>();
         let mut nv = NaiveVec::from(x.clone());
-        for i in 0..x.len() {
-            for j in i..x.len() {
-                let naive = x[i..j]
-                    .into_iter()
-                    .fold(MinMonoid::id(), |acc, x| acc.op(x));
+        for i in 0..=x.len() {
+            for j in i..=x.len() {
+                let naive = x[i..j].iter().fold(MinMonoid::id(), |acc, x| acc.op(x));
                 assert_eq!(nv.range_op(i..j), naive);
             }
         }

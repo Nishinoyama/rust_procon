@@ -10,7 +10,7 @@ impl<T: Monoid + IdempotentOp> SparseTree<T> {
     pub fn build_with(a: &[T]) -> Self {
         let n = a.len();
         let t = (n as f32).log2() as usize;
-        let mut doubling = a.into_iter().map(|x| vec![x.clone()]).collect::<Vec<_>>();
+        let mut doubling = a.iter().map(|x| vec![x.clone()]).collect::<Vec<_>>();
         for j in 0..t {
             for i in 0..n {
                 let db = doubling[i][j].op(&doubling[(n - 1).min(i + (1 << j))][j]);
@@ -49,8 +49,8 @@ mod test {
         let x = x.into_iter().map(MinMonoid).collect::<Vec<_>>();
         let mut st = SparseTree::build_with(&x);
         let mut nv = NaiveVec::from(x.clone());
-        for i in 0..x.len() {
-            for j in i..x.len() {
+        for i in 0..=x.len() {
+            for j in i..=x.len() {
                 assert_eq!(st.range_op(i..j), nv.range_op(i..j));
             }
         }
