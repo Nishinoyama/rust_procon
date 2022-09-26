@@ -19,117 +19,118 @@ impl<T: Bounded> Bounded for BoundedVec<T> {
 
 /// min: [Monoid] and [Idempotence]
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
-pub struct MinMonoid<T: Clone + Ord>(pub T);
+pub struct MinMonoid;
 
-impl<T: Clone + Ord> Semigroup for MinMonoid<T> {}
-
-impl<T: Clone + Ord> Magma for MinMonoid<T> {
-    fn op(&self, other: &Self) -> Self {
-        self.min(other).clone()
+impl<T: Clone + Ord> Magma<T> for MinMonoid {
+    fn op(lhs: &T, rhs: &T) -> T {
+        lhs.max(rhs).clone()
     }
 }
 
-impl<T: Clone + Ord + Bounded> Monoid for MinMonoid<T> {
-    fn id() -> Self {
-        Self(T::max_value())
+impl<T: Clone + Ord> Semigroup<T> for MinMonoid {}
+
+impl<T: Clone + Ord + Bounded> Monoid<T> for MinMonoid {
+    fn id() -> T {
+        T::max_value()
     }
 }
 
-impl<T: Clone + Ord> Idempotence for MinMonoid<T> {}
+impl<T: Clone + Ord> Idempotence<T> for MinMonoid {}
 
-impl<T: Clone + Ord> Commutativity for MinMonoid<T> {}
+impl<T: Clone + Ord> Commutativity<T> for MinMonoid {}
 
 /// max: [Monoid] and [Idempotence]
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
-pub struct MaxMonoid<T>(pub T);
+pub struct MaxMonoid;
 
-impl<T: Clone + Ord> Semigroup for MaxMonoid<T> {}
-
-impl<T: Clone + Ord> Magma for MaxMonoid<T> {
-    fn op(&self, other: &Self) -> Self {
-        self.max(other).clone()
+impl<T: Clone + Ord> Magma<T> for MaxMonoid {
+    fn op(lhs: &T, rhs: &T) -> T {
+        lhs.max(rhs).clone()
     }
 }
 
-impl<T: Clone + Ord + Bounded> Monoid for MaxMonoid<T> {
-    fn id() -> Self {
-        Self(T::min_value())
+impl<T: Clone + Ord> Semigroup<T> for MaxMonoid {}
+
+impl<T: Clone + Ord + Bounded> Monoid<T> for MaxMonoid {
+    fn id() -> T {
+        T::min_value()
     }
 }
 
-impl<T: Clone + Ord> Idempotence for MaxMonoid<T> {}
+impl<T: Clone + Ord> Idempotence<T> for MaxMonoid {}
 
-impl<T: Clone + Ord> Commutativity for MaxMonoid<T> {}
+impl<T: Clone + Ord> Commutativity<T> for MaxMonoid {}
 
 /// additive: [Monoid] for unsigned, [Group] for singed
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
-pub struct AdditiveStruct<T>(pub T);
+pub struct AdditiveStruct;
 
-impl<T> Semigroup for AdditiveStruct<T> where T: Clone + Add<Output = T> {}
-
-impl<T> Magma for AdditiveStruct<T>
+impl<T> Magma<T> for AdditiveStruct
 where
     T: Clone + Add<Output = T>,
 {
-    fn op(&self, other: &Self) -> Self {
-        Self(self.0.clone().add(other.0.clone()))
+    fn op(lhs: &T, rhs: &T) -> T {
+        lhs.clone() + rhs.clone()
     }
 }
 
-impl<T> Monoid for AdditiveStruct<T>
+impl<T> Semigroup<T> for AdditiveStruct where T: Clone + Add<Output = T> {}
+
+
+impl<T> Monoid<T> for AdditiveStruct
 where
     T: Clone + Add<Output = T> + Zero,
 {
-    fn id() -> Self {
-        Self(T::zero())
+    fn id() -> T {
+        T::zero()
     }
 }
 
-impl<T> Group for AdditiveStruct<T>
+impl<T> Group<T> for AdditiveStruct
 where
     T: Clone + Add<Output = T> + Zero + Neg<Output = T>,
 {
-    fn inv(&self) -> Self {
-        Self(self.0.clone().neg())
+    fn inv(elm: &T) -> T {
+        -elm.clone()
     }
 }
 
-impl<T> Commutativity for AdditiveStruct<T> where T: Clone + Add<Output = T> {}
+impl<T> Commutativity<T> for AdditiveStruct where T: Clone + Add<Output = T> {}
 
 /// bitwise-xor: [Group]
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
-pub struct BitXorGroup<T>(pub T);
+pub struct BitXorGroup;
 
-impl<T> Semigroup for BitXorGroup<T> where T: Clone + BitXor<Output = T> {}
+impl<T> Semigroup<T> for BitXorGroup where T: Clone + BitXor<Output = T> {}
 
-impl<T> Magma for BitXorGroup<T>
+impl<T> Magma<T> for BitXorGroup
 where
     T: Clone + BitXor<Output = T>,
 {
-    fn op(&self, other: &Self) -> Self {
-        Self(self.0.clone().bitxor(other.0.clone()))
+    fn op(lhs: &T, rhs: &T) -> T {
+        lhs.clone().bitxor(rhs.clone())
     }
 }
 
-impl<T> Monoid for BitXorGroup<T>
+impl<T> Monoid<T> for BitXorGroup
 where
     T: Clone + BitXor<Output = T> + Zero,
 {
-    fn id() -> Self {
-        Self(T::zero())
+    fn id() -> T {
+        T::zero()
     }
 }
 
-impl<T> Group for BitXorGroup<T>
+impl<T> Group<T> for BitXorGroup
 where
     T: Clone + BitXor<Output = T> + Zero,
 {
-    fn inv(&self) -> Self {
-        Self(self.0.clone())
+    fn inv(elm: &T) -> T {
+        elm.clone()
     }
 }
 
-impl<T> Commutativity for BitXorGroup<T> where T: Clone + BitXor<Output = T> {}
+impl<T> Commutativity<T> for BitXorGroup where T: Clone + BitXor<Output = T> {}
 
 #[cfg(test)]
 mod test {
@@ -137,25 +138,14 @@ mod test {
 
     #[test]
     fn test_monoid_max() {
-        let (l, r) = (MaxMonoid(0), MaxMonoid(3));
-        assert_eq!(l.op(&r), MaxMonoid(3));
-        assert_eq!(l.op(&MaxMonoid::id()), l);
+        let (l, r) = (0, 3);
+        assert_eq!(MaxMonoid::op(&l, &r), 3);
+        assert_eq!(MaxMonoid::op(&l, &MaxMonoid::id()), l);
 
-        let t = (0..).map(MaxMonoid).take(20000).collect::<Vec<_>>();
         assert_eq!(
-            t[20..=40].iter().fold(MaxMonoid::id(), |ac, x| ac.op(x)),
-            MaxMonoid(40),
+            (20usize..=40).into_iter().fold(MaxMonoid::id(), |ac, x| MaxMonoid::op(&ac, &x)),
+            40,
         )
     }
 
-    #[test]
-    fn test_monoid_min() {
-        let t = MinMonoid(BoundedVec(vec![3, 1, 4]));
-
-        assert_eq!(t.op(&t), t);
-        assert_eq!(
-            t.op(&MinMonoid(BoundedVec(vec![]))),
-            MinMonoid(BoundedVec(vec![]))
-        );
-    }
 }

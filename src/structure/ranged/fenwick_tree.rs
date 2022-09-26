@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use crate::algebra::{Commutativity, Group, Monoid};
 use crate::structure::ranged::{LeftFixedOp, RangeOp};
 use std::ops::Range;
@@ -5,62 +6,64 @@ use std::ops::Range;
 #[derive(Debug, Clone)]
 /// Yee, there is no advantage that use this with Non-[Commutativity] structure.
 /// Use [AccumulativeArray](crate::structure::ranged::accumulative_array::AccumulativeArray) in those cases.
-pub struct FenwickTree<T> {
-    data: Vec<T>,
+pub struct FenwickTree<E, T> {
+    alg: PhantomData<T>,
+    data: Vec<E>,
 }
 
-impl<T: Monoid> FenwickTree<T> {
+impl<E: Clone, T: Monoid<E>> FenwickTree<E, T> {
     pub fn new(n: usize) -> Self {
         Self {
+            alg: Default::default(),
             data: std::iter::repeat(T::id()).take(n + 1).collect(),
         }
     }
-    pub fn build_with(a: &[T]) -> Self {
+    pub fn build_with(a: &[E]) -> Self {
         let mut data = std::iter::repeat(T::id())
             .take(a.len() + 1)
             .collect::<Vec<_>>();
         for (i, x) in a.iter().enumerate() {
             let i = i + 1;
-            data[i] = data[i].op(x);
+            data[i] = T::op(&data[i], x);
             let j = i + (i & i.wrapping_neg());
             let origin = data[i].clone();
             if let Some(upper) = data.get_mut(j) {
-                *upper = upper.op(&origin);
+                *upper = T::op(upper, &origin);
             }
         }
-        Self { data }
+        Self { alg: Default::default(), data }
     }
 }
 
-impl<T: Commutativity> FenwickTree<T> {
-    pub fn point_op_assign(&mut self, index: usize, rhs: &T) {
+impl<E, T: Commutativity<E>> FenwickTree<E, T> {
+    pub fn point_op_assign(&mut self, index: usize, rhs: &E) {
         let mut index = index + 1;
         while index < self.data.len() {
-            self.data[index] = self.data[index].op(rhs);
+            self.data[index] = T::op(&self.data[index], rhs);
             index += index & index.wrapping_neg();
         }
     }
 }
 
-impl<T: Monoid + Commutativity> FenwickTree<T> {}
+impl<E, T: Monoid<E> + Commutativity<E>> FenwickTree<E, T> {}
 
-impl<T: Monoid> LeftFixedOp<T> for FenwickTree<T> {
-    fn right_op(&mut self, r: usize) -> T {
+impl<E, T: Monoid<E>> LeftFixedOp<E, T> for FenwickTree<E, T> {
+    fn right_op(&mut self, r: usize) -> E {
         let mut res = T::id();
         let mut r = r;
         while r > 0 {
-            res = res.op(&self.data[r]);
+            res = T::op(&res, &self.data[r]);
             r -= r & r.wrapping_neg();
         }
         res
     }
 }
 
-impl<T: Group + Commutativity> RangeOp<T> for FenwickTree<T> {
-    fn range_op(&mut self, range: Range<usize>) -> T {
+impl<E, T: Group<E> + Commutativity<E>> RangeOp<E, T> for FenwickTree<E, T> {
+    fn range_op(&mut self, range: Range<usize>) -> E {
         let r = self.right_op(range.end);
         let l = self.right_op(range.start);
-        r.op(&l.inv())
+        T::op(&r, &T::inv(&l))
     }
 }
 
@@ -75,9 +78,8 @@ mod test {
     #[test]
     fn fenwick_sum() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let x = x.into_iter().map(AdditiveStruct).collect::<Vec<_>>();
-        let mut nv = NaiveVec::from(x.clone());
-        let mut ft = FenwickTree::build_with(&x);
+        let mut nv = NaiveVec::<i32, AdditiveStruct>::from(x.clone());
+        let mut ft = FenwickTree::<i32, AdditiveStruct>::build_with(&x);
         for i in 0..=x.len() {
             assert_eq!(ft.right_op(i), nv.right_op(i));
         }
@@ -88,7 +90,6 @@ mod test {
         }
         for (i, x) in vec![2, 7, 1, 8, 2, 8]
             .into_iter()
-            .map(AdditiveStruct)
             .enumerate()
         {
             nv.point_op_assign(i, &x);

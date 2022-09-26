@@ -18,15 +18,15 @@ pub mod naive_vec;
 pub mod sparse_table;
 
 /// returns `OP i \in [l,r) a_i`. If l < r, then returns identity.
-pub trait RangeOp<T: Monoid> {
+pub trait RangeOp<E, T: Monoid<E>> {
     /// returns `OP i \in [l,r) a_i`.
     /// `self` is mutable since some data structure needs that(such as lazy evaluation).
-    fn range_op(&mut self, range: Range<usize>) -> T;
+    fn range_op(&mut self, range: Range<usize>) -> E;
 }
 
 /// returns `OP i \in [0,r) a_i`. If r = 0, then returns identity.
-pub trait LeftFixedOp<T> {
+pub trait LeftFixedOp<E, T> {
     /// returns `OP i \in [0,r) a_i`.
     /// `self` is mutable since some data structure needs that(such as lazy evaluation).
-    fn right_op(&mut self, r: usize) -> T;
+    fn right_op(&mut self, r: usize) -> E;
 }

@@ -1,39 +1,41 @@
+use std::marker::PhantomData;
 use crate::algebra::{Magma, Monoid};
 use crate::structure::ranged::{LeftFixedOp, RangeOp};
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
-pub struct NaiveVec<T> {
-    data: Vec<T>,
+pub struct NaiveVec<E, T> {
+    alg: PhantomData<T>,
+    data: Vec<E>,
 }
 
-impl<T: Magma> NaiveVec<T> {
-    pub fn point_op_assign(&mut self, index: usize, rhs: &T) {
-        self.data[index] = self.data[index].op(rhs);
+impl<E, T: Magma<E>> NaiveVec<E, T> {
+    pub fn point_op_assign(&mut self, index: usize, rhs: &E) {
+        self.data[index] = T::op(&self.data[index], rhs);
     }
 }
 
-impl<T: Magma> NaiveVec<T> {
-    pub fn build_with(a: &[T]) -> Self {
-        Self { data: a.to_vec() }
+impl<E: Clone, T: Magma<E>> NaiveVec<E, T> {
+    pub fn build_with(a: &[E]) -> Self {
+        Self::from(a.to_vec())
     }
 }
 
-impl<T: Monoid> LeftFixedOp<T> for NaiveVec<T> {
-    fn right_op(&mut self, r: usize) -> T {
+impl<E, T: Monoid<E>> LeftFixedOp<E, T> for NaiveVec<E, T> {
+    fn right_op(&mut self, r: usize) -> E {
         self.range_op(0..r)
     }
 }
 
-impl<T: Monoid> RangeOp<T> for NaiveVec<T> {
-    fn range_op(&mut self, range: Range<usize>) -> T {
-        self.data[range].iter().fold(T::id(), |a, x| a.op(x))
+impl<E, T: Monoid<E>> RangeOp<E, T> for NaiveVec<E, T> {
+    fn range_op(&mut self, range: Range<usize>) -> E {
+        self.data[range].iter().fold(T::id(), |a, x| T::op(&a, x))
     }
 }
 
-impl<T> From<Vec<T>> for NaiveVec<T> {
-    fn from(data: Vec<T>) -> Self {
-        Self { data }
+impl<E, T> From<Vec<E>> for NaiveVec<E, T> {
+    fn from(data: Vec<E>) -> Self {
+        Self { alg: Default::default(), data }
     }
 }
 
@@ -47,11 +49,10 @@ mod test {
     #[test]
     fn sparse_min() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let x = x.into_iter().map(MinMonoid).collect::<Vec<_>>();
-        let mut nv = NaiveVec::from(x.clone());
+        let mut nv = NaiveVec::<i32, MinMonoid>::from(x.clone());
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                let naive = x[i..j].iter().fold(MinMonoid::id(), |acc, x| acc.op(x));
+                let naive = x[i..j].iter().fold(MinMonoid::id(), |acc, x| MinMonoid::op(&acc, x));
                 assert_eq!(nv.range_op(i..j), naive);
             }
         }
