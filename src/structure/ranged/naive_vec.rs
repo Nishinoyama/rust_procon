@@ -1,5 +1,5 @@
 use crate::algebra::{Magma, Monoid};
-use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, PointAssign, RangeOp};
+use crate::structure::ranged::{LeftFixedOp, PointAssign, RangeOp};
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -23,7 +23,7 @@ impl<E, T: Magma<E>> NaiveVec<E, T> {
 
 impl<E: Clone, T: Magma<E>> NaiveVec<E, T> {
     pub fn build_with(a: &[E]) -> Self {
-        Self::from(a.to_vec())
+        Self::from(a)
     }
 }
 
@@ -39,17 +39,11 @@ impl<E, T: Monoid<E>> RangeOp<E, T> for NaiveVec<E, T> {
     }
 }
 
-impl<E: Clone, T> BuildableWithSlice<E, T> for NaiveVec<E, T> {
-    fn build_with(a: &[E]) -> Self {
-        Self::from(a.to_vec())
-    }
-}
-
-impl<E, T> From<Vec<E>> for NaiveVec<E, T> {
-    fn from(data: Vec<E>) -> Self {
+impl<E: Clone, T> From<&[E]> for NaiveVec<E, T> {
+    fn from(data: &[E]) -> Self {
         Self {
             alg: Default::default(),
-            data,
+            data: data.to_vec(),
         }
     }
 }
@@ -64,7 +58,7 @@ mod test {
     #[test]
     fn sparse_min() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let mut nv = NaiveVec::<i32, MinMonoid>::from(x.clone());
+        let mut nv = NaiveVec::<i32, MinMonoid>::from(x.as_slice());
         for i in 0..=x.len() {
             for j in i..=x.len() {
                 let naive = x[i..j]

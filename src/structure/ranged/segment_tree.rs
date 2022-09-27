@@ -1,5 +1,5 @@
 use crate::algebra::Monoid;
-use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, PointAssign, RangeOp};
+use crate::structure::ranged::{LeftFixedOp, PointAssign, RangeOp};
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -27,14 +27,8 @@ impl<E: Clone, T: Monoid<E>> PointAssign<E, T> for SegmentTree<E, T> {
     }
 }
 
-impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for SegmentTree<E, T> {
-    fn build_with(a: &[E]) -> Self {
-        Self::from(a.to_vec())
-    }
-}
-
-impl<E: Clone, T: Monoid<E>> From<Vec<E>> for SegmentTree<E, T> {
-    fn from(a: Vec<E>) -> Self {
+impl<E: Clone, T: Monoid<E>> From<&[E]> for SegmentTree<E, T> {
+    fn from(a: &[E]) -> Self {
         let n = 1 << (a.len() as f64).log2().ceil() as usize;
         let mut data = vec![T::id(); n * 2];
         data[n..n + a.len()].clone_from_slice(&a);
@@ -91,13 +85,13 @@ mod test {
 
     use crate::structure::ranged::naive_vec::NaiveVec;
     use crate::structure::ranged::segment_tree::SegmentTree;
-    use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, PointAssign, RangeOp};
+    use crate::structure::ranged::{LeftFixedOp, PointAssign, RangeOp};
 
     #[test]
     fn seg_max() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.clone());
-        let mut st = SegmentTree::<i32, MaxMonoid>::build_with(&x);
+        let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.as_slice());
+        let mut st = SegmentTree::<i32, MaxMonoid>::from(x.as_slice());
         for i in 0..=x.len() {
             assert_eq!(st.right_op(i), nv.right_op(i));
         }
@@ -139,8 +133,8 @@ mod test {
         .into_iter()
         .map(String::from)
         .collect::<Vec<_>>();
-        let mut nv = NaiveVec::<String, StringChain>::from(x.clone());
-        let mut st = SegmentTree::<String, StringChain>::build_with(&x);
+        let mut nv = NaiveVec::<String, StringChain>::from(x.as_slice());
+        let mut st = SegmentTree::<String, StringChain>::from(x.as_slice());
         for i in 0..=x.len() {
             assert_eq!(st.right_op(i), nv.right_op(i));
         }

@@ -1,5 +1,5 @@
 use crate::algebra::{Commutativity, Group, Monoid};
-use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, PointAssign, RangeOp};
+use crate::structure::ranged::{LeftFixedOp, PointAssign, RangeOp};
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -20,8 +20,8 @@ impl<E: Clone, T: Monoid<E>> FenwickTree<E, T> {
     }
 }
 
-impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for FenwickTree<E, T> {
-    fn build_with(a: &[E]) -> Self {
+impl<E: Clone, T: Monoid<E>> From<&[E]> for FenwickTree<E, T> {
+    fn from(a: &[E]) -> Self {
         let mut data = std::iter::repeat(T::id())
             .take(a.len() + 1)
             .collect::<Vec<_>>();
@@ -90,13 +90,13 @@ mod test {
 
     use crate::structure::ranged::fenwick_tree::FenwickTree;
     use crate::structure::ranged::naive_vec::NaiveVec;
-    use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, RangeOp};
+    use crate::structure::ranged::{LeftFixedOp, RangeOp};
 
     #[test]
     fn fenwick_sum() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let mut nv = NaiveVec::<i32, AdditiveStruct>::from(x.clone());
-        let mut ft = FenwickTree::<i32, AdditiveStruct>::build_with(&x);
+        let mut nv = NaiveVec::<i32, AdditiveStruct>::from(x.as_slice());
+        let mut ft = FenwickTree::<i32, AdditiveStruct>::from(x.as_slice());
         for i in 0..=x.len() {
             assert_eq!(ft.right_op(i), nv.right_op(i));
         }

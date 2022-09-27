@@ -38,10 +38,3 @@ pub trait LeftFixedOp<E, T> {
     /// `self` is mutable since some data structure needs that(such as lazy evaluation).
     fn right_op(&mut self, r: usize) -> E;
 }
-
-/// Able to build a Range-Featured Structure with [slice]
-#[deprecated(note = "use std::convert::From instead")]
-pub trait BuildableWithSlice<E, T> {
-    /// Build a structure. Complexity is depends on each structure.
-    fn build_with(a: &[E]) -> Self;
-}
