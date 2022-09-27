@@ -27,8 +27,8 @@ impl<E: Clone, T: Monoid<E>> PointAssign<E, T> for SegmentTree<E, T> {
     }
 }
 
-impl<E: Clone, T: Monoid<E>> From<&[E]> for SegmentTree<E, T> {
-    fn from(a: &[E]) -> Self {
+impl<E: Clone, T: Monoid<E>> From<Vec<E>> for SegmentTree<E, T> {
+    fn from(a: Vec<E>) -> Self {
         let n = 1 << (a.len() as f64).log2().ceil() as usize;
         let mut data = vec![T::id(); n * 2];
         data[n..n + a.len()].clone_from_slice(&a);
@@ -39,6 +39,12 @@ impl<E: Clone, T: Monoid<E>> From<&[E]> for SegmentTree<E, T> {
             alg: Default::default(),
             data,
         }
+    }
+}
+
+impl<E: Clone, T: Monoid<E>> From<&[E]> for SegmentTree<E, T> {
+    fn from(a: &[E]) -> Self {
+        Self::from(a.to_vec())
     }
 }
 
@@ -90,8 +96,8 @@ mod test {
     #[test]
     fn seg_max() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.as_slice());
-        let mut st = SegmentTree::<i32, MaxMonoid>::from(x.as_slice());
+        let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.clone());
+        let mut st = SegmentTree::<i32, MaxMonoid>::from(x.clone());
         for i in 0..=x.len() {
             assert_eq!(st.right_op(i), nv.right_op(i));
         }

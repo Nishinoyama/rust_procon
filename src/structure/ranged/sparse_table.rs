@@ -9,11 +9,11 @@ pub struct SparseTable<E, T> {
     doubling: Vec<Vec<E>>,
 }
 
-impl<E: Clone, T: Monoid<E>> From<&[E]> for SparseTable<E, T> {
-    fn from(a: &[E]) -> Self {
+impl<E, T: Monoid<E>> From<Vec<E>> for SparseTable<E, T> {
+    fn from(a: Vec<E>) -> Self {
         let n = a.len();
         let t = (n as f32).log2() as usize;
-        let mut doubling = a.iter().map(|x| vec![x.clone()]).collect::<Vec<_>>();
+        let mut doubling = a.into_iter().map(|x| vec![x]).collect::<Vec<_>>();
         for j in 0..t {
             for i in 0..n {
                 let db = T::op(&doubling[i][j], &doubling[(n - 1).min(i + (1 << j))][j]);
@@ -24,6 +24,12 @@ impl<E: Clone, T: Monoid<E>> From<&[E]> for SparseTable<E, T> {
             alg: Default::default(),
             doubling,
         }
+    }
+}
+
+impl<E: Clone, T: Monoid<E>> From<&[E]> for SparseTable<E, T> {
+    fn from(a: &[E]) -> Self {
+        Self::from(a.to_vec())
     }
 }
 
@@ -58,8 +64,8 @@ mod test {
     #[test]
     fn sparse_min() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let mut st = SparseTable::<i32, MaxMonoid>::from(x.as_slice());
-        let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.as_slice());
+        let mut st = SparseTable::<i32, MaxMonoid>::from(x.clone());
+        let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.clone());
         for i in 0..=x.len() {
             for j in i..=x.len() {
                 assert_eq!(st.range_op(i..j), nv.range_op(i..j));

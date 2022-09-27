@@ -9,8 +9,8 @@ pub struct AccumulativeArray<E, T> {
     data: Vec<E>,
 }
 
-impl<E: Clone, T: Monoid<E>> From<&[E]> for AccumulativeArray<E, T> {
-    fn from(a: &[E]) -> Self {
+impl<E: Clone, T: Monoid<E>> From<Vec<E>> for AccumulativeArray<E, T> {
+    fn from(a: Vec<E>) -> Self {
         let mut data = std::iter::repeat(T::id())
             .take(a.len() + 1)
             .collect::<Vec<_>>();
@@ -21,6 +21,12 @@ impl<E: Clone, T: Monoid<E>> From<&[E]> for AccumulativeArray<E, T> {
             alg: Default::default(),
             data,
         }
+    }
+}
+
+impl<E: Clone, T: Monoid<E>> From<&[E]> for AccumulativeArray<E, T> {
+    fn from(a: &[E]) -> Self {
+        Self::from(a.to_vec())
     }
 }
 
@@ -50,8 +56,8 @@ mod test {
     #[test]
     fn acc_sum() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let mut nv = NaiveVec::<i32, AdditiveStruct>::from(x.as_slice());
-        let mut ac = AccumulativeArray::<i32, AdditiveStruct>::from(x.as_slice());
+        let mut nv = NaiveVec::<i32, AdditiveStruct>::from(x.clone());
+        let mut ac = AccumulativeArray::<i32, AdditiveStruct>::from(x.clone());
         for i in 0..=x.len() {
             assert_eq!(ac.right_op(i), nv.right_op(i));
         }

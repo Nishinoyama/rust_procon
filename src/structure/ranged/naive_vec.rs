@@ -39,12 +39,18 @@ impl<E, T: Monoid<E>> RangeOp<E, T> for NaiveVec<E, T> {
     }
 }
 
-impl<E: Clone, T> From<&[E]> for NaiveVec<E, T> {
-    fn from(data: &[E]) -> Self {
+impl<E, T> From<Vec<E>> for NaiveVec<E, T> {
+    fn from(data: Vec<E>) -> Self {
         Self {
             alg: Default::default(),
-            data: data.to_vec(),
+            data,
         }
+    }
+}
+
+impl<E: Clone, T> From<&[E]> for NaiveVec<E, T> {
+    fn from(data: &[E]) -> Self {
+        Self::from(data.to_vec())
     }
 }
 
@@ -58,7 +64,7 @@ mod test {
     #[test]
     fn sparse_min() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let mut nv = NaiveVec::<i32, MinMonoid>::from(x.as_slice());
+        let mut nv = NaiveVec::<i32, MinMonoid>::from(x.clone());
         for i in 0..=x.len() {
             for j in i..=x.len() {
                 let naive = x[i..j]
