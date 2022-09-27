@@ -76,7 +76,6 @@ where
 
 impl<T> Semigroup<T> for AdditiveStruct where T: Clone + Add<Output = T> {}
 
-
 impl<T> Monoid<T> for AdditiveStruct
 where
     T: Clone + Add<Output = T> + Zero,
@@ -132,6 +131,24 @@ where
 
 impl<T> Commutativity<T> for BitXorGroup where T: Clone + BitXor<Output = T> {}
 
+/// additive: [Monoid] for unsigned, [Group] for singed
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub struct StringChain;
+
+impl Magma<String> for StringChain {
+    fn op(lhs: &String, rhs: &String) -> String {
+        lhs.clone() + rhs
+    }
+}
+
+impl Semigroup<String> for StringChain {}
+
+impl Monoid<String> for StringChain {
+    fn id() -> String {
+        String::new()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -143,9 +160,10 @@ mod test {
         assert_eq!(MaxMonoid::op(&l, &MaxMonoid::id()), l);
 
         assert_eq!(
-            (20usize..=40).into_iter().fold(MaxMonoid::id(), |ac, x| MaxMonoid::op(&ac, &x)),
+            (20usize..=40)
+                .into_iter()
+                .fold(MaxMonoid::id(), |ac, x| MaxMonoid::op(&ac, &x)),
             40,
         )
     }
-
 }

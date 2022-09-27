@@ -1,6 +1,6 @@
-use std::marker::PhantomData;
 use crate::algebra::{Commutativity, Group, Monoid};
-use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, RangeOp};
+use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, PointAssign, RangeOp};
+use std::marker::PhantomData;
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
@@ -34,7 +34,18 @@ impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for FenwickTree<E, T> {
                 *upper = T::op(upper, &origin);
             }
         }
-        Self { alg: Default::default(), data }
+        Self {
+            alg: Default::default(),
+            data,
+        }
+    }
+}
+
+impl<E: Clone, T: Commutativity<E> + Group<E>> PointAssign<E, T> for FenwickTree<E, T> {
+    fn set_at(&mut self, elem: E, index: usize) {
+        let inv = T::inv(&self.range_op(index..index + 1));
+        self.point_op_assign(index, &T::inv(&inv));
+        self.point_op_assign(index, &elem);
     }
 }
 
@@ -63,7 +74,8 @@ impl<E, T: Monoid<E>> LeftFixedOp<E, T> for FenwickTree<E, T> {
 }
 
 impl<E, T> RangeOp<E, T> for FenwickTree<E, T>
-    where T: Group<E> + Commutativity<E>
+where
+    T: Group<E> + Commutativity<E>,
 {
     fn range_op(&mut self, range: Range<usize>) -> E {
         let r = self.right_op(range.end);
@@ -93,10 +105,7 @@ mod test {
                 assert_eq!(ft.range_op(i..j), nv.range_op(i..j));
             }
         }
-        for (i, x) in vec![2, 7, 1, 8, 2, 8]
-            .into_iter()
-            .enumerate()
-        {
+        for (i, x) in vec![2, 7, 1, 8, 2, 8].into_iter().enumerate() {
             nv.point_op_assign(i, &x);
             ft.point_op_assign(i, &x);
         }

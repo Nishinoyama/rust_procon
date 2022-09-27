@@ -1,12 +1,18 @@
-use std::marker::PhantomData;
 use crate::algebra::{Magma, Monoid};
-use crate::structure::ranged::{LeftFixedOp, RangeOp};
+use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, PointAssign, RangeOp};
+use std::marker::PhantomData;
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
 pub struct NaiveVec<E, T> {
     alg: PhantomData<T>,
     data: Vec<E>,
+}
+
+impl<E, T> PointAssign<E, T> for NaiveVec<E, T> {
+    fn set_at(&mut self, elem: E, index: usize) {
+        self.data[index] = elem
+    }
 }
 
 impl<E, T: Magma<E>> NaiveVec<E, T> {
@@ -33,9 +39,18 @@ impl<E, T: Monoid<E>> RangeOp<E, T> for NaiveVec<E, T> {
     }
 }
 
+impl<E: Clone, T> BuildableWithSlice<E, T> for NaiveVec<E, T> {
+    fn build_with(a: &[E]) -> Self {
+        Self::from(a.to_vec())
+    }
+}
+
 impl<E, T> From<Vec<E>> for NaiveVec<E, T> {
     fn from(data: Vec<E>) -> Self {
-        Self { alg: Default::default(), data }
+        Self {
+            alg: Default::default(),
+            data,
+        }
     }
 }
 
@@ -52,7 +67,9 @@ mod test {
         let mut nv = NaiveVec::<i32, MinMonoid>::from(x.clone());
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                let naive = x[i..j].iter().fold(MinMonoid::id(), |acc, x| MinMonoid::op(&acc, x));
+                let naive = x[i..j]
+                    .iter()
+                    .fold(MinMonoid::id(), |acc, x| MinMonoid::op(&acc, x));
                 assert_eq!(nv.range_op(i..j), naive);
             }
         }
