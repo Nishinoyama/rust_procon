@@ -19,6 +19,9 @@ pub mod naive_vec;
 pub mod segment_tree;
 /// Build: O(NlogN), [RangeFold]: O(1), needs [Idempotence], [Monoid].
 pub mod sparse_table;
+/// Build: O(N), [RangeFold]: O(√N), needs [Monoid].
+/// [PointAssign]: O(√N) is valid.
+pub mod square_root_decomposition;
 
 /// Able to assign a_i into elem.
 pub trait PointAssign<E, T> {
