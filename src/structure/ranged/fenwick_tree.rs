@@ -62,7 +62,9 @@ impl<E, T: Monoid<E>> LeftFixedOp<E, T> for FenwickTree<E, T> {
     }
 }
 
-impl<E, T: Group<E> + Commutativity<E>> RangeOp<E, T> for FenwickTree<E, T> {
+impl<E, T> RangeOp<E, T> for FenwickTree<E, T>
+    where T: Group<E> + Commutativity<E>
+{
     fn range_op(&mut self, range: Range<usize>) -> E {
         let r = self.right_op(range.end);
         let l = self.right_op(range.start);

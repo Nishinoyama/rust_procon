@@ -27,7 +27,9 @@ impl<E: Clone, T: Monoid<E>> LeftFixedOp<E, T> for AccumulativeArray<E, T> {
     }
 }
 
-impl<T: Group<E> + Commutativity<E>, E> RangeOp<E, T> for AccumulativeArray<E, T> {
+impl<E, T> RangeOp<E, T> for AccumulativeArray<E, T>
+    where T: Group<E> + Commutativity<E>
+{
     fn range_op(&mut self, range: Range<usize>) -> E {
         T::op(&self.data[range.end], &T::inv(&self.data[range.start]))
     }

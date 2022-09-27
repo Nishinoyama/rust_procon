@@ -17,21 +17,22 @@ pub mod naive_vec;
 /// Build: O(NlogN), [RangeOp]: O(1), needs [Idempotence], [Monoid].
 pub mod sparse_table;
 
-/// returns `OP i \in [l,r) a_i`. If l < r, then returns identity.
+/// Returns `OP i \in [l,r) a_i`. If l < r, then returns identity.
 pub trait RangeOp<E, T: Monoid<E>> {
     /// returns `OP i \in [l,r) a_i`.
     /// `self` is mutable since some data structure needs that(such as lazy evaluation).
     fn range_op(&mut self, range: Range<usize>) -> E;
 }
 
-/// returns `OP i \in [0,r) a_i`. If r = 0, then returns identity.
+/// Returns `OP i \in [0,r) a_i`. If r = 0, then returns identity.
 pub trait LeftFixedOp<E, T> {
     /// returns `OP i \in [0,r) a_i`.
     /// `self` is mutable since some data structure needs that(such as lazy evaluation).
     fn right_op(&mut self, r: usize) -> E;
 }
 
-///
+/// Able to build a Range-Featured Structure with [slice]
 pub trait BuildableWithSlice<E, T> {
+    /// Build a structure. Complexity is depends on each structure.
     fn build_with(a: &[E]) -> Self;
 }

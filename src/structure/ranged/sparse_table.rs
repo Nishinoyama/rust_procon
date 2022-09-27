@@ -4,12 +4,12 @@ use crate::structure::ranged::{BuildableWithSlice, RangeOp};
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
-pub struct SparseTree<E, T> {
+pub struct SparseTable<E, T> {
     alg: PhantomData<T>,
     doubling: Vec<Vec<E>>,
 }
 
-impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for SparseTree<E, T> {
+impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for SparseTable<E, T> {
     fn build_with(a: &[E]) -> Self {
         let n = a.len();
         let t = (n as f32).log2() as usize;
@@ -24,7 +24,9 @@ impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for SparseTree<E, T> {
     }
 }
 
-impl<E, T: Monoid<E> + Idempotence<E> + Commutativity<E>> RangeOp<E, T> for SparseTree<E, T> {
+impl<E, T> RangeOp<E, T> for SparseTable<E, T>
+    where T: Monoid<E> + Idempotence<E> + Commutativity<E>
+{
     fn range_op(&mut self, range: Range<usize>) -> E {
         assert!(range.end <= self.doubling.len());
         let c = range.len();
@@ -41,7 +43,7 @@ impl<E, T: Monoid<E> + Idempotence<E> + Commutativity<E>> RangeOp<E, T> for Spar
 
 #[cfg(test)]
 mod test {
-    use super::SparseTree;
+    use super::SparseTable;
     use crate::algebra::typical::{MaxMonoid};
     use crate::structure::ranged::naive_vec::NaiveVec;
     use crate::structure::ranged::{BuildableWithSlice, RangeOp};
@@ -49,7 +51,7 @@ mod test {
     #[test]
     fn sparse_min() {
         let x = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
-        let mut st = SparseTree::<i32, MaxMonoid>::build_with(&x);
+        let mut st = SparseTable::<i32, MaxMonoid>::build_with(&x);
         let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.clone());
         for i in 0..=x.len() {
             for j in i..=x.len() {
