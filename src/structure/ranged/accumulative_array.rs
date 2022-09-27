@@ -1,5 +1,5 @@
 use crate::algebra::{Commutativity, Group, Monoid};
-use crate::structure::ranged::{LeftFixedOp, RangeOp};
+use crate::structure::ranged::{LeftFixedFold, RangeFold};
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -30,17 +30,17 @@ impl<E: Clone, T: Monoid<E>> From<&[E]> for AccumulativeArray<E, T> {
     }
 }
 
-impl<E: Clone, T: Monoid<E>> LeftFixedOp<E, T> for AccumulativeArray<E, T> {
-    fn right_op(&mut self, r: usize) -> E {
+impl<E: Clone, T: Monoid<E>> LeftFixedFold<E, T> for AccumulativeArray<E, T> {
+    fn fold_to(&mut self, r: usize) -> E {
         self.data[r].clone()
     }
 }
 
-impl<E, T> RangeOp<E, T> for AccumulativeArray<E, T>
+impl<E, T> RangeFold<E, T> for AccumulativeArray<E, T>
 where
     T: Group<E> + Commutativity<E>,
 {
-    fn range_op(&mut self, range: Range<usize>) -> E {
+    fn fold_in(&mut self, range: Range<usize>) -> E {
         T::op(&self.data[range.end], &T::inv(&self.data[range.start]))
     }
 }
@@ -51,7 +51,7 @@ mod test {
 
     use crate::structure::ranged::accumulative_array::AccumulativeArray;
     use crate::structure::ranged::naive_vec::NaiveVec;
-    use crate::structure::ranged::{LeftFixedOp, RangeOp};
+    use crate::structure::ranged::{LeftFixedFold, RangeFold};
 
     #[test]
     fn acc_sum() {
@@ -59,11 +59,11 @@ mod test {
         let mut nv = NaiveVec::<i32, AdditiveStruct>::from(x.clone());
         let mut ac = AccumulativeArray::<i32, AdditiveStruct>::from(x.clone());
         for i in 0..=x.len() {
-            assert_eq!(ac.right_op(i), nv.right_op(i));
+            assert_eq!(ac.fold_to(i), nv.fold_to(i));
         }
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(ac.range_op(i..j), nv.range_op(i..j));
+                assert_eq!(ac.fold_in(i..j), nv.fold_in(i..j));
             }
         }
     }

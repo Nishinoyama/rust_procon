@@ -1,5 +1,5 @@
 use crate::algebra::{Magma, Monoid};
-use crate::structure::ranged::{LeftFixedOp, PointAssign, RangeOp};
+use crate::structure::ranged::{LeftFixedFold, PointAssign, RangeFold};
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -27,14 +27,14 @@ impl<E: Clone, T: Magma<E>> NaiveVec<E, T> {
     }
 }
 
-impl<E, T: Monoid<E>> LeftFixedOp<E, T> for NaiveVec<E, T> {
-    fn right_op(&mut self, r: usize) -> E {
-        self.range_op(0..r)
+impl<E, T: Monoid<E>> LeftFixedFold<E, T> for NaiveVec<E, T> {
+    fn fold_to(&mut self, r: usize) -> E {
+        self.fold_in(0..r)
     }
 }
 
-impl<E, T: Monoid<E>> RangeOp<E, T> for NaiveVec<E, T> {
-    fn range_op(&mut self, range: Range<usize>) -> E {
+impl<E, T: Monoid<E>> RangeFold<E, T> for NaiveVec<E, T> {
+    fn fold_in(&mut self, range: Range<usize>) -> E {
         self.data[range].iter().fold(T::id(), |a, x| T::op(&a, x))
     }
 }
@@ -59,7 +59,7 @@ mod test {
     use crate::algebra::typical::MinMonoid;
     use crate::algebra::{Magma, Monoid};
     use crate::structure::ranged::naive_vec::NaiveVec;
-    use crate::structure::ranged::RangeOp;
+    use crate::structure::ranged::RangeFold;
 
     #[test]
     fn sparse_min() {
@@ -70,7 +70,7 @@ mod test {
                 let naive = x[i..j]
                     .iter()
                     .fold(MinMonoid::id(), |acc, x| MinMonoid::op(&acc, x));
-                assert_eq!(nv.range_op(i..j), naive);
+                assert_eq!(nv.fold_in(i..j), naive);
             }
         }
     }

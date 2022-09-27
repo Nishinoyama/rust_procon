@@ -1,5 +1,5 @@
 use crate::algebra::{Commutativity, Idempotence, Monoid};
-use crate::structure::ranged::RangeOp;
+use crate::structure::ranged::RangeFold;
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -33,11 +33,11 @@ impl<E: Clone, T: Monoid<E>> From<&[E]> for SparseTable<E, T> {
     }
 }
 
-impl<E, T> RangeOp<E, T> for SparseTable<E, T>
+impl<E, T> RangeFold<E, T> for SparseTable<E, T>
 where
     T: Monoid<E> + Idempotence<E> + Commutativity<E>,
 {
-    fn range_op(&mut self, range: Range<usize>) -> E {
+    fn fold_in(&mut self, range: Range<usize>) -> E {
         assert!(range.end <= self.doubling.len());
         let c = range.len();
         if c == 0 {
@@ -59,7 +59,7 @@ mod test {
     use super::SparseTable;
     use crate::algebra::typical::MaxMonoid;
     use crate::structure::ranged::naive_vec::NaiveVec;
-    use crate::structure::ranged::RangeOp;
+    use crate::structure::ranged::RangeFold;
 
     #[test]
     fn sparse_min() {
@@ -68,7 +68,7 @@ mod test {
         let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.clone());
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(st.range_op(i..j), nv.range_op(i..j));
+                assert_eq!(st.fold_in(i..j), nv.fold_in(i..j));
             }
         }
     }

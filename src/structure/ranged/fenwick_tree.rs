@@ -1,5 +1,5 @@
 use crate::algebra::{Commutativity, Group, Monoid};
-use crate::structure::ranged::{LeftFixedOp, PointAssign, RangeOp};
+use crate::structure::ranged::{LeftFixedFold, PointAssign, RangeFold};
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -48,7 +48,7 @@ impl<E: Clone, T: Monoid<E>> From<&[E]> for FenwickTree<E, T> {
 
 impl<E: Clone, T: Commutativity<E> + Group<E>> PointAssign<E, T> for FenwickTree<E, T> {
     fn set_at(&mut self, elem: E, index: usize) {
-        let inv = T::inv(&self.range_op(index..index + 1));
+        let inv = T::inv(&self.fold_in(index..index + 1));
         self.point_op_assign(index, &T::inv(&inv));
         self.point_op_assign(index, &elem);
     }
@@ -66,8 +66,8 @@ impl<E, T: Commutativity<E>> FenwickTree<E, T> {
 
 impl<E, T: Monoid<E> + Commutativity<E>> FenwickTree<E, T> {}
 
-impl<E, T: Monoid<E>> LeftFixedOp<E, T> for FenwickTree<E, T> {
-    fn right_op(&mut self, r: usize) -> E {
+impl<E, T: Monoid<E>> LeftFixedFold<E, T> for FenwickTree<E, T> {
+    fn fold_to(&mut self, r: usize) -> E {
         let mut res = T::id();
         let mut r = r;
         while r > 0 {
@@ -78,13 +78,13 @@ impl<E, T: Monoid<E>> LeftFixedOp<E, T> for FenwickTree<E, T> {
     }
 }
 
-impl<E, T> RangeOp<E, T> for FenwickTree<E, T>
+impl<E, T> RangeFold<E, T> for FenwickTree<E, T>
 where
     T: Group<E> + Commutativity<E>,
 {
-    fn range_op(&mut self, range: Range<usize>) -> E {
-        let r = self.right_op(range.end);
-        let l = self.right_op(range.start);
+    fn fold_in(&mut self, range: Range<usize>) -> E {
+        let r = self.fold_to(range.end);
+        let l = self.fold_to(range.start);
         T::op(&r, &T::inv(&l))
     }
 }
@@ -95,7 +95,7 @@ mod test {
 
     use crate::structure::ranged::fenwick_tree::FenwickTree;
     use crate::structure::ranged::naive_vec::NaiveVec;
-    use crate::structure::ranged::{LeftFixedOp, RangeOp};
+    use crate::structure::ranged::{LeftFixedFold, RangeFold};
 
     #[test]
     fn fenwick_sum() {
@@ -103,11 +103,11 @@ mod test {
         let mut nv = NaiveVec::<i32, AdditiveStruct>::from(x.clone());
         let mut ft = FenwickTree::<i32, AdditiveStruct>::from(x.clone());
         for i in 0..=x.len() {
-            assert_eq!(ft.right_op(i), nv.right_op(i));
+            assert_eq!(ft.fold_to(i), nv.fold_to(i));
         }
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(ft.range_op(i..j), nv.range_op(i..j));
+                assert_eq!(ft.fold_in(i..j), nv.fold_in(i..j));
             }
         }
         for (i, x) in vec![2, 7, 1, 8, 2, 8].into_iter().enumerate() {
@@ -115,11 +115,11 @@ mod test {
             ft.point_op_assign(i, &x);
         }
         for i in 0..=x.len() {
-            assert_eq!(ft.right_op(i), nv.right_op(i));
+            assert_eq!(ft.fold_to(i), nv.fold_to(i));
         }
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(ft.range_op(i..j), nv.range_op(i..j));
+                assert_eq!(ft.fold_in(i..j), nv.fold_in(i..j));
             }
         }
     }

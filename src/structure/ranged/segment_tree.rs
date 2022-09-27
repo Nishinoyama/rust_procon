@@ -1,5 +1,5 @@
 use crate::algebra::Monoid;
-use crate::structure::ranged::{LeftFixedOp, PointAssign, RangeOp};
+use crate::structure::ranged::{LeftFixedFold, PointAssign, RangeFold};
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -48,8 +48,8 @@ impl<E: Clone, T: Monoid<E>> From<&[E]> for SegmentTree<E, T> {
     }
 }
 
-impl<E: Clone, T: Monoid<E>> LeftFixedOp<E, T> for SegmentTree<E, T> {
-    fn right_op(&mut self, r: usize) -> E {
+impl<E: Clone, T: Monoid<E>> LeftFixedFold<E, T> for SegmentTree<E, T> {
+    fn fold_to(&mut self, r: usize) -> E {
         let mut res = T::id();
         let mut r = r + self.len();
         while r > 0 {
@@ -63,8 +63,8 @@ impl<E: Clone, T: Monoid<E>> LeftFixedOp<E, T> for SegmentTree<E, T> {
     }
 }
 
-impl<E: Clone, T: Monoid<E>> RangeOp<E, T> for SegmentTree<E, T> {
-    fn range_op(&mut self, range: Range<usize>) -> E {
+impl<E: Clone, T: Monoid<E>> RangeFold<E, T> for SegmentTree<E, T> {
+    fn fold_in(&mut self, range: Range<usize>) -> E {
         let mut res_left = T::id();
         let mut res_right = T::id();
         let mut l = range.start + self.len();
@@ -91,7 +91,7 @@ mod test {
 
     use crate::structure::ranged::naive_vec::NaiveVec;
     use crate::structure::ranged::segment_tree::SegmentTree;
-    use crate::structure::ranged::{LeftFixedOp, PointAssign, RangeOp};
+    use crate::structure::ranged::{LeftFixedFold, PointAssign, RangeFold};
 
     #[test]
     fn seg_max() {
@@ -99,11 +99,11 @@ mod test {
         let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.clone());
         let mut st = SegmentTree::<i32, MaxMonoid>::from(x.clone());
         for i in 0..=x.len() {
-            assert_eq!(st.right_op(i), nv.right_op(i));
+            assert_eq!(st.fold_to(i), nv.fold_to(i));
         }
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(st.range_op(i..j), nv.range_op(i..j));
+                assert_eq!(st.fold_in(i..j), nv.fold_in(i..j));
             }
         }
         for (i, x) in vec![2, 7, 1, 8, 2, 8].into_iter().enumerate() {
@@ -111,11 +111,11 @@ mod test {
             st.set_at(x, i);
         }
         for i in 0..=x.len() {
-            assert_eq!(st.right_op(i), nv.right_op(i));
+            assert_eq!(st.fold_to(i), nv.fold_to(i));
         }
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(st.range_op(i..j), nv.range_op(i..j));
+                assert_eq!(st.fold_in(i..j), nv.fold_in(i..j));
             }
         }
     }
@@ -142,11 +142,11 @@ mod test {
         let mut nv = NaiveVec::<String, StringChain>::from(x.as_slice());
         let mut st = SegmentTree::<String, StringChain>::from(x.as_slice());
         for i in 0..=x.len() {
-            assert_eq!(st.right_op(i), nv.right_op(i));
+            assert_eq!(st.fold_to(i), nv.fold_to(i));
         }
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(st.range_op(i..j), nv.range_op(i..j));
+                assert_eq!(st.fold_in(i..j), nv.fold_in(i..j));
             }
         }
         for (i, x) in vec!["what", "the", "f@dk", "is", "this"]
@@ -158,11 +158,11 @@ mod test {
             st.set_at(x.clone(), i);
         }
         for i in 0..=x.len() {
-            assert_eq!(st.right_op(i), nv.right_op(i));
+            assert_eq!(st.fold_to(i), nv.fold_to(i));
         }
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(st.range_op(i..j), nv.range_op(i..j));
+                assert_eq!(st.fold_in(i..j), nv.fold_in(i..j));
             }
         }
     }
