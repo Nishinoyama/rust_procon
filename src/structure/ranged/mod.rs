@@ -30,3 +30,8 @@ pub trait LeftFixedOp<E, T> {
     /// `self` is mutable since some data structure needs that(such as lazy evaluation).
     fn right_op(&mut self, r: usize) -> E;
 }
+
+///
+pub trait BuildableWithSlice<E, T> {
+    fn build_with(a: &[E]) -> Self;
+}

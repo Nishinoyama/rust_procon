@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 use crate::algebra::{Commutativity, Group, Monoid};
-use crate::structure::ranged::{LeftFixedOp, RangeOp};
+use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, RangeOp};
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
@@ -18,7 +18,10 @@ impl<E: Clone, T: Monoid<E>> FenwickTree<E, T> {
             data: std::iter::repeat(T::id()).take(n + 1).collect(),
         }
     }
-    pub fn build_with(a: &[E]) -> Self {
+}
+
+impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for FenwickTree<E, T> {
+    fn build_with(a: &[E]) -> Self {
         let mut data = std::iter::repeat(T::id())
             .take(a.len() + 1)
             .collect::<Vec<_>>();
@@ -73,7 +76,7 @@ mod test {
 
     use crate::structure::ranged::fenwick_tree::FenwickTree;
     use crate::structure::ranged::naive_vec::NaiveVec;
-    use crate::structure::ranged::{LeftFixedOp, RangeOp};
+    use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, RangeOp};
 
     #[test]
     fn fenwick_sum() {

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 use crate::algebra::{Commutativity, Idempotence, Monoid};
-use crate::structure::ranged::RangeOp;
+use crate::structure::ranged::{BuildableWithSlice, RangeOp};
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
@@ -9,8 +9,8 @@ pub struct SparseTree<E, T> {
     doubling: Vec<Vec<E>>,
 }
 
-impl<E: Clone, T: Monoid<E> + Idempotence<E>> SparseTree<E, T> {
-    pub fn build_with(a: &[E]) -> Self {
+impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for SparseTree<E, T> {
+    fn build_with(a: &[E]) -> Self {
         let n = a.len();
         let t = (n as f32).log2() as usize;
         let mut doubling = a.iter().map(|x| vec![x.clone()]).collect::<Vec<_>>();
@@ -44,7 +44,7 @@ mod test {
     use super::SparseTree;
     use crate::algebra::typical::{MaxMonoid};
     use crate::structure::ranged::naive_vec::NaiveVec;
-    use crate::structure::ranged::RangeOp;
+    use crate::structure::ranged::{BuildableWithSlice, RangeOp};
 
     #[test]
     fn sparse_min() {

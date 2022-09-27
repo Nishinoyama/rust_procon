@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 use crate::algebra::{Commutativity, Group, Monoid};
-use crate::structure::ranged::{LeftFixedOp, RangeOp};
+use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, RangeOp};
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
@@ -9,8 +9,8 @@ pub struct AccumulativeArray<E, T> {
     data: Vec<E>,
 }
 
-impl<E: Clone, T: Monoid<E>> AccumulativeArray<E, T> {
-    pub fn build_with(a: &[E]) -> Self {
+impl<E: Clone, T: Monoid<E>> BuildableWithSlice<E, T> for AccumulativeArray<E, T> {
+    fn build_with(a: &[E]) -> Self {
         let mut data = std::iter::repeat(T::id())
             .take(a.len() + 1)
             .collect::<Vec<_>>();
@@ -39,7 +39,7 @@ mod test {
 
     use crate::structure::ranged::accumulative_array::AccumulativeArray;
     use crate::structure::ranged::naive_vec::NaiveVec;
-    use crate::structure::ranged::{LeftFixedOp, RangeOp};
+    use crate::structure::ranged::{BuildableWithSlice, LeftFixedOp, RangeOp};
 
     #[test]
     fn acc_sum() {
