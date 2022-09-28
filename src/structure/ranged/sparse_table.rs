@@ -9,15 +9,17 @@ pub struct SparseTable<E, T> {
     doubling: Vec<Vec<E>>,
 }
 
-impl<E, T: Monoid<E>> From<Vec<E>> for SparseTable<E, T> {
+impl<E: Clone, T: Monoid<E>> From<Vec<E>> for SparseTable<E, T> {
     fn from(a: Vec<E>) -> Self {
         let n = a.len();
         let t = (n as f32).log2() as usize;
-        let mut doubling = a.into_iter().map(|x| vec![x]).collect::<Vec<_>>();
+        let mut doubling = vec![vec![T::id(); t + 1]; n];
+        for i in 0..n {
+            doubling[i][0] = a[i].clone();
+        }
         for j in 0..t {
             for i in 0..n {
-                let db = T::op(&doubling[i][j], &doubling[(n - 1).min(i + (1 << j))][j]);
-                doubling[i].push(db);
+                doubling[i][j + 1] = T::op(&doubling[i][j], &doubling[(n - 1).min(i + (1 << j))][j]);
             }
         }
         Self {
@@ -34,8 +36,8 @@ impl<E: Clone, T: Monoid<E>> From<&[E]> for SparseTable<E, T> {
 }
 
 impl<E, T> RangeFold<E, T> for SparseTable<E, T>
-where
-    T: Monoid<E> + Idempotence<E> + Commutativity<E>,
+    where
+        T: Monoid<E> + Idempotence<E> + Commutativity<E>,
 {
     fn fold_in(&mut self, range: Range<usize>) -> E {
         assert!(range.end <= self.doubling.len());
@@ -68,7 +70,7 @@ mod test {
         let mut nv = NaiveVec::<i32, MaxMonoid>::from(x.clone());
         for i in 0..=x.len() {
             for j in i..=x.len() {
-                assert_eq!(st.fold_in(i..j), nv.fold_in(i..j));
+                assert_eq!(st.fold_in(i..j), nv.fold_in(i..j), "{:?}", i..j);
             }
         }
     }
