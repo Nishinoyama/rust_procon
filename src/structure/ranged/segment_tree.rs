@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::ops::Range;
 
 #[derive(Debug, Clone)]
-pub(crate) struct SegmentTree<E, T> {
+pub struct SegmentTree<E, T> {
     alg: PhantomData<T>,
     data: Vec<E>,
 }
